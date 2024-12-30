@@ -50,6 +50,7 @@ struct EthernetHeader: public PacketHeader {
         std::memcpy(header.dest_mac, data, 6);            // 目标 MAC 地址
         std::memcpy(header.src_mac, data + 6, 6);         // 源 MAC 地址
         std::memcpy(&header.ethertype, data + 12, 2);     // EtherType
+        header.ethertype = ntohs(header.ethertype);
         return header;
     }
 };

@@ -16,11 +16,12 @@ enum class DatalinkProtocol {
 };
 
 enum class NetworkProtocol {
-    INVALID, IPV4, IPV6, ICMP, ARP
+    INVALID, IPV4, IPV6, ARP
 };
 
 enum class TransportProtocol {
-    INVALID, TCP, UDP
+    INVALID, TCP, UDP,
+    ICMP /* ICMP Works in Network Layer, but it is above IP protocol. */
 };
 
 struct ApplicationPacket {

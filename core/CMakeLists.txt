@@ -19,11 +19,21 @@ set(PROJECT_HEADERS_PARSER
     parser/ethernet.hpp
     parser/ipv4.hpp
     parser/ipv6.hpp
+    parser/arp.hpp
     parser/tcp.hpp
+    parser/udp.hpp
 )
 
-add_library(tiny-sniffer-core SHARED ${PROJECT_SOURCES})
-target_link_libraries(tiny-sniffer-core PUBLIC Pcap::Pcap)
+set(OTHER_LIBRARY)
+if(MSVC)
+    set(OTHER_LIBRARY ws2_32)
+endif()
+
+add_executable(tiny-sniffer-cli ${PROJECT_SOURCES} cli.cpp)
+target_link_libraries(tiny-sniffer-cli PUBLIC Pcap::Pcap ${OTHER_LIBRARY})
+
+add_library(tiny-sniffer-core ${PROJECT_SOURCES})
+target_link_libraries(tiny-sniffer-core PUBLIC Pcap::Pcap ${OTHER_LIBRARY})
 
 install(TARGETS tiny-sniffer-core
     RUNTIME DESTINATION bin

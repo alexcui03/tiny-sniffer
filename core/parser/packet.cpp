@@ -85,6 +85,11 @@ std::string NetworkPacket::get_source() const {
             return header->get_source() + ":" + payload.header->get_source();
         }
     }
+    if (protocol == NetworkProtocol::IPV6) {
+        if (payload.protocol == TransportProtocol::TCP) {
+            return "[" + header->get_source() + "]:" + payload.header->get_source();
+        }
+    }
     return header->get_source();
 }
 
@@ -92,6 +97,11 @@ std::string NetworkPacket::get_destination() const {
     if (protocol == NetworkProtocol::IPV4) {
         if (payload.protocol == TransportProtocol::TCP) {
             return header->get_destination() + ":" + payload.header->get_destination();
+        }
+    }
+    if (protocol == NetworkProtocol::IPV6) {
+        if (payload.protocol == TransportProtocol::TCP) {
+            return "[" + header->get_destination() + "]:" + payload.header->get_destination();
         }
     }
     return header->get_destination();

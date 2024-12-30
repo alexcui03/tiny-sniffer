@@ -43,7 +43,7 @@ struct IPv4Header: public PacketHeader {
         stream << "Checksum: " << checksum << std::endl;
 
         // 打印 IP 地址
-        stream << "Source IP: " << ip_to_string(src_ip);
+        stream << "Source IP: " << ip_to_string(src_ip) << std::endl;
         stream << "Destination IP: " << ip_to_string(dest_ip);
 
         return stream.str();
@@ -77,6 +77,12 @@ struct IPv4Header: public PacketHeader {
         std::memcpy(&header.checksum, data + 10, sizeof(header.checksum));
         std::memcpy(&header.src_ip, data + 12, sizeof(header.src_ip));
         std::memcpy(&header.dest_ip, data + 16, sizeof(header.dest_ip));
+        header.total_length = ntohs(header.total_length);
+        header.identification = ntohs(header.identification);
+        header.flags_frag_offset = ntohs(header.flags_frag_offset);
+        header.checksum = ntohs(header.checksum);
+        header.src_ip = ntohl(header.src_ip);
+        header.dest_ip = ntohl(header.dest_ip);
         return header;
     }
 };

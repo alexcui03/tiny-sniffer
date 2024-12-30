@@ -15,7 +15,7 @@ struct TCPHeader: public PacketHeader {
     uint16_t dest_port;       // 目标端口
     uint32_t seq_number;      // 序列号
     uint32_t ack_number;      // 确认号
-    uint16_t data_offset_flags; // 数据偏移（4位）+ 保留字段（3位）+ 控制位（9位）
+    uint16_t data_offset_flags; // 数据偏移（4位）+ 保留字段（6位）+ 控制位（6位）
     uint16_t window_size;     // 窗口大小
     uint16_t checksum;        // 校验和
     uint16_t urgent_pointer;  // 紧急指针
@@ -40,12 +40,12 @@ struct TCPHeader: public PacketHeader {
         stream << (data_offset * 4) << " bytes)" << std::endl;
 
         // 标志字段（使用控制位的高 9 位）
-        uint8_t urg = (data_offset_flags >> 7) & 0x01;
-        uint8_t ack = (data_offset_flags >> 6) & 0x01;
-        uint8_t psh = (data_offset_flags >> 5) & 0x01;
-        uint8_t rst = (data_offset_flags >> 4) & 0x01;
-        uint8_t syn = (data_offset_flags >> 3) & 0x01;
-        uint8_t fin = (data_offset_flags >> 2) & 0x01;
+        uint8_t urg = (data_offset_flags >> 5) & 0x01;
+        uint8_t ack = (data_offset_flags >> 4) & 0x01;
+        uint8_t psh = (data_offset_flags >> 3) & 0x01;
+        uint8_t rst = (data_offset_flags >> 2) & 0x01;
+        uint8_t syn = (data_offset_flags >> 1) & 0x01;
+        uint8_t fin = (data_offset_flags >> 0) & 0x01;
 
         stream << "Flags: ";
         stream << "URG=" << (int)urg << ", ";
@@ -63,7 +63,7 @@ struct TCPHeader: public PacketHeader {
         if (!options.empty()) {
             stream << "\nOptions: " << std::hex << std::uppercase << std::setfill('0');
             for (size_t i = 0; i < options.size(); ++i) {
-                stream << std::setw(2) << options[i] << ' ';
+                stream << std::setw(2) << (int)options[i] << ' ';
             }
         }
 
@@ -91,6 +91,15 @@ struct TCPHeader: public PacketHeader {
         std::memcpy(&header.window_size, data + 14, sizeof(header.window_size));
         std::memcpy(&header.checksum, data + 16, sizeof(header.checksum));
         std::memcpy(&header.urgent_pointer, data + 18, sizeof(header.urgent_pointer));
+
+        header.src_port = ntohs(header.src_port);
+        header.dest_port = ntohs(header.dest_port);
+        header.seq_number = ntohl(header.seq_number);
+        header.ack_number = ntohl(header.ack_number);
+        header.data_offset_flags = ntohs(header.data_offset_flags);
+        header.window_size = ntohs(header.window_size);
+        header.checksum = ntohs(header.checksum);
+        header.urgent_pointer = ntohs(header.urgent_pointer);
 
         // 计算 TCP 头部长度（数据偏移字段指示头部长度，单位是 4 字节）
         size_t header_len = (header.data_offset_flags >> 12) * 4; // 因为 data_offset 是 4 位的

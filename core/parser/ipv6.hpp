@@ -57,8 +57,8 @@ struct IPv6Header: public PacketHeader {
         std::stringstream stream;
         stream << std::hex << std::uppercase;
         for (int i = 0; i < 16; ++i) {
-            if (ip[i] > 0) stream << ip[i];
-            if (i < 15) stream << ":";
+            if (i > 0 && i % 2 == 0) stream << ":";
+            if (ip[i] > 0) stream << (int)ip[i];
         }
         return stream.str();
     }
@@ -78,6 +78,9 @@ struct IPv6Header: public PacketHeader {
         // 解析源和目标 IP 地址
         std::memcpy(header.src_ip, data + 8, sizeof(header.src_ip));
         std::memcpy(header.dest_ip, data + 24, sizeof(header.dest_ip));
+
+        header.version_traffic_class_flow_label = ntohl(header.version_traffic_class_flow_label);
+        header.payload_length = ntohs(header.payload_length);
 
         return header;
     }
