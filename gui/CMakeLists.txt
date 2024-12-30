@@ -8,7 +8,7 @@ find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Widgets)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
-    MainWindow.hpp
+    ListenerWorker.cpp
     MainWindow.cpp
     main.cpp
 )
@@ -19,7 +19,7 @@ else()
     add_executable(tiny-sniffer-gui ${PROJECT_SOURCES})
 endif()
 
-target_link_libraries(tiny-sniffer-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(tiny-sniffer-gui PRIVATE tiny-sniffer-core Qt${QT_VERSION_MAJOR}::Widgets)
 
 if(${QT_VERSION_MAJOR} EQUAL 6)
     qt_finalize_executable(tiny-sniffer-gui)

@@ -19,18 +19,24 @@ void Device::listen(UserCallbackType callback) const {
 		throw pcap_error(pcap_errbuf);
 	}
 
-	pcap_t *handle = pcap_open_live(this->name.c_str(), BUFSIZ, 1, 1000, pcap_errbuf);
-	if (handle == nullptr) {
+	this->handle = pcap_open_live(this->name.c_str(), BUFSIZ, 1, 1000, pcap_errbuf);
+	if (this->handle == nullptr) {
         throw pcap_error(pcap_errbuf);
 	}
 
 	HandlerParams params;
-	params.datalink = pcap_datalink(handle);
+	params.datalink = pcap_datalink(this->handle);
 	params.user_callback = callback;
 
-	if (pcap_loop(handle, 0, package_handler, reinterpret_cast<u_char *>(&params)) == PCAP_ERROR) {
-        throw pcap_error(pcap_geterr(handle));
+	if (pcap_loop(handle, 0, package_handler, reinterpret_cast<u_char *>(&params)) == PCAP_ERROR_BREAK) {
+        throw pcap_error(pcap_geterr(this->handle));
 	}
+}
+
+void Device::stop_listen() const {
+	pcap_breakloop(this->handle);
+	pcap_close(this->handle);
+	this->handle = nullptr;
 }
 
 std::vector<Device> Device::get_device_list() {
