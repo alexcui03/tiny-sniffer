@@ -1,9 +1,13 @@
 #pragma once
 
+#include "packet.hpp"
+
 #include <cstdint>
 #include <cstring>
+#include <sstream>
+#include <string>
 
-struct IPv4Header {
+struct IPv4Header: public PacketHeader {
     uint8_t version_ihl;        // 版本（4位）和头部长度（4位）
     uint8_t tos;                // 服务类型
     uint16_t total_length;      // 总长度
@@ -16,8 +20,40 @@ struct IPv4Header {
     uint32_t dest_ip;           // 目标 IP 地址
 
     // 计算 IPv4 头部的字节长度
-    static constexpr size_t header_length() {
-        return 20;              // IPv4 头部固定为 20 字节（不包括选项）
+    size_t header_length() const override {
+        return (version_ihl & 0x0F) * 4;
+    }
+
+    std::string to_string() const override {
+        std::stringstream stream;
+        uint8_t version = version_ihl >> 4;  // 版本
+        uint8_t ihl = version_ihl & 0x0F;    // 头部长度
+        stream << "Version: " << (int)version << ", IHL: " << (int)ihl << std::endl;
+        stream << "TOS: " << (int)tos << std::endl;
+        stream << "Total Length: " << total_length << std::endl;
+        stream << "Identification: " << identification << std::endl;
+
+        // 标志和片偏移
+        uint16_t flags = flags_frag_offset >> 13;
+        uint16_t frag_offset = flags_frag_offset & 0x1FFF;
+        stream << "Flags: " << flags << ", Fragment Offset: " << frag_offset << std::endl;
+
+        stream << "TTL: " << (int)ttl << std::endl;
+        stream << "Protocol: " << (int)protocol << std::endl;
+        stream << "Checksum: " << checksum << std::endl;
+
+        // 打印 IP 地址
+        stream << "Source IP: " << ((src_ip >> 24) & 0xFF) << "."
+            << ((src_ip >> 16) & 0xFF) << "."
+            << ((src_ip >> 8) & 0xFF) << "."
+            << (src_ip & 0xFF) << std::endl;
+
+        stream << "Destination IP: " << ((dest_ip >> 24) & 0xFF) << "."
+            << ((dest_ip >> 16) & 0xFF) << "."
+            << ((dest_ip >> 8) & 0xFF) << "."
+            << (dest_ip & 0xFF);
+
+        return stream.str();
     }
 
     // 从字节流解析 IPv4 头部

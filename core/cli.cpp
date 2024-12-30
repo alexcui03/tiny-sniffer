@@ -15,7 +15,8 @@ int main(int argc, char *argv[]) {
 	Parser parser;
 
 	devices[index].listen([&parser](const pcap_pkthdr *header, const unsigned char *bytes) {
-		parser.next_package(header, bytes);
+		decltype(auto) packet = parser.next_packet(header, bytes);
+		std::cout << "==========" << std::endl << packet.to_string() << std::endl;
 	});
 
     return 0;

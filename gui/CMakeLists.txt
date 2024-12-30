@@ -24,4 +24,3 @@ target_link_libraries(tiny-sniffer-gui PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
 if(${QT_VERSION_MAJOR} EQUAL 6)
     qt_finalize_executable(tiny-sniffer-gui)
 endif()
-
