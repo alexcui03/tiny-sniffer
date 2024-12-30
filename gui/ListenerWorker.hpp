@@ -9,6 +9,8 @@ class ListenerWorker: public QThread {
 public:
     ListenerWorker(const Device &device, QObject *parent = nullptr);
     ~ListenerWorker();
+    void pause();
+    void unpause();
     void unlisten();
 protected:
     void run() override;
@@ -18,4 +20,5 @@ signals:
 private:
     Device device;
     Parser parser;
+    bool paused = false;
 };

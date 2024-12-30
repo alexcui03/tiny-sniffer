@@ -27,6 +27,7 @@ MainWindow::MainWindow(QWidget *parent)
     table_view.setModel(&data);
     table_view.horizontalHeader()->setStretchLastSection(true);
     table_view.verticalHeader()->hide();
+    table_view.setEditTriggers(QTableView::NoEditTriggers);
 
     this->updateDevicesList();
 }
@@ -72,6 +73,8 @@ void MainWindow::startRecord() {
         worker = new ListenerWorker(device, this);
         connect(worker, &ListenerWorker::nextPacket, this, &MainWindow::packetHandler);
         worker->start();
+    } else if (worker) {
+        worker->unpause();
     }
 
     record_started = true;
@@ -81,6 +84,10 @@ void MainWindow::startRecord() {
 }
 
 void MainWindow::pauseRecord() {
+    if (worker) {
+        worker->pause();
+    }
+
     record_started = false;
     record_btn.setText("Unpause");
     stop_btn.setEnabled(false);

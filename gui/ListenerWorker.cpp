@@ -13,8 +13,18 @@ void ListenerWorker::run() {
 }
 
 void ListenerWorker::deviceHandler(const pcap_pkthdr *header, const unsigned char *bytes) {
-    const DatalinkPacket &packet = parser.next_packet(header, bytes);
-    emit nextPacket(packet);
+    if (!paused) {
+        const DatalinkPacket &packet = parser.next_packet(header, bytes);
+        emit nextPacket(packet);
+    }
+}
+
+void ListenerWorker::pause() {
+    paused = true;
+}
+
+void ListenerWorker::unpause() {
+    paused = false;
 }
 
 void ListenerWorker::unlisten() {
