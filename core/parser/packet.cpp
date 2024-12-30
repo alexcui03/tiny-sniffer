@@ -23,12 +23,78 @@ std::string DatalinkPacket::to_string() const {
     return result;
 }
 
+std::string DatalinkPacket::get_time() const {
+    time_t seconds = timestamp.tv_sec;
+    tm *timeinfo = localtime(&seconds);
+    char buffer[100];
+    strftime(buffer, sizeof(buffer), "%Y/%m/%d %H:%M:%S", timeinfo);
+    sprintf(buffer + 19, ".%03d", timestamp.tv_usec / 1000);
+    return buffer;
+}
+
+std::string DatalinkPacket::get_source() const {
+    if (protocol == DatalinkProtocol::ETHERNET) {
+        if (payload.protocol == NetworkProtocol::IPV4 ||
+            payload.protocol == NetworkProtocol::IPV6
+        ) {
+            return payload.get_source();
+        }
+    }
+    return header->get_source();
+}
+
+std::string DatalinkPacket::get_destination() const {
+    if (protocol == DatalinkProtocol::ETHERNET) {
+        if (payload.protocol == NetworkProtocol::IPV4 ||
+            payload.protocol == NetworkProtocol::IPV6
+        ) {
+            return payload.get_destination();
+        }
+        return header->get_destination();
+    }
+    return header->get_destination();
+}
+
+std::string DatalinkPacket::get_protocol() const {
+    if (protocol == DatalinkProtocol::ETHERNET) {
+        if (payload.protocol == NetworkProtocol::IPV4 ||
+            payload.protocol == NetworkProtocol::IPV6
+        ) {
+            switch (payload.payload.protocol) {
+                case TransportProtocol::TCP: return "TCP";
+                case TransportProtocol::UDP: return "UDP";
+            }
+            return "IP";
+        }
+        return "ETHERNET";
+    }
+    return "UNKNOWN";
+}
+
 std::string NetworkPacket::to_string() const {
     std::string result = this->payload.to_string();
     if (this->header) {
         result = this->header->to_string() +  + "\n----------\n" + result;
     }
     return result;
+}
+
+std::string NetworkPacket::get_source() const {
+    if (protocol == NetworkProtocol::IPV4) {
+        if (payload.protocol == TransportProtocol::TCP) {
+            return header->get_source() + ":" + payload.header->get_source();
+        }
+    }
+    return header->get_source();
+}
+
+std::string NetworkPacket::get_destination() const {
+    if (protocol == NetworkProtocol::IPV4) {
+        if (payload.protocol == TransportProtocol::TCP) {
+            return header->get_destination() + ":" + payload.header->get_destination();
+        }
+    }
+    return header->get_destination();
 }
 
 std::string TransportPacket::to_string() const {

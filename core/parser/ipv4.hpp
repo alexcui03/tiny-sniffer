@@ -43,17 +43,25 @@ struct IPv4Header: public PacketHeader {
         stream << "Checksum: " << checksum << std::endl;
 
         // 打印 IP 地址
-        stream << "Source IP: " << ((src_ip >> 24) & 0xFF) << "."
-            << ((src_ip >> 16) & 0xFF) << "."
-            << ((src_ip >> 8) & 0xFF) << "."
-            << (src_ip & 0xFF) << std::endl;
-
-        stream << "Destination IP: " << ((dest_ip >> 24) & 0xFF) << "."
-            << ((dest_ip >> 16) & 0xFF) << "."
-            << ((dest_ip >> 8) & 0xFF) << "."
-            << (dest_ip & 0xFF);
+        stream << "Source IP: " << ip_to_string(src_ip);
+        stream << "Destination IP: " << ip_to_string(dest_ip);
 
         return stream.str();
+    }
+
+    std::string get_source() const override {
+        return ip_to_string(this->src_ip);
+    }
+
+    std::string get_destination() const override {
+        return ip_to_string(this->dest_ip);
+    }
+
+    static std::string ip_to_string(uint32_t ip) {
+        return std::to_string((ip >> 24) & 0xFF) + "."
+            + std::to_string((ip >> 16) & 0xFF) + "."
+            + std::to_string((ip >> 8) & 0xFF) + "."
+            + std::to_string(ip & 0xFF);
     }
 
     // 从字节流解析 IPv4 头部

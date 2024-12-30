@@ -36,20 +36,30 @@ struct IPv6Header: public PacketHeader {
         stream << "Hop Limit: " << (int)hop_limit << std::endl;
 
         // 打印源 IP 地址
-        stream << "Source IP: " << std::hex << std::uppercase;
-        for (int i = 0; i < 16; ++i) {
-            if (src_ip[i] > 0) stream << src_ip[i];
-            if (i < 15) stream << ":";
-        }
+        stream << "Source IP: " << ip_to_string(src_ip);
         stream << std::endl;
 
         // 打印目标 IP 地址
-        stream << "Destination IP: ";
+        stream << "Destination IP: " << ip_to_string(dest_ip);
+
+        return stream.str();
+    }
+
+    std::string get_source() const override {
+        return ip_to_string(this->src_ip);
+    }
+
+    std::string get_destination() const override {
+        return ip_to_string(this->dest_ip);
+    }
+
+    static std::string ip_to_string(const uint8_t ip[16]) {
+        std::stringstream stream;
+        stream << std::hex << std::uppercase;
         for (int i = 0; i < 16; ++i) {
-            if (dest_ip[i] > 0) stream << dest_ip[i];
+            if (ip[i] > 0) stream << ip[i];
             if (i < 15) stream << ":";
         }
-
         return stream.str();
     }
 

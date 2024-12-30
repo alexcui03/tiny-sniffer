@@ -70,6 +70,14 @@ struct TCPHeader: public PacketHeader {
         return stream.str();
     }
 
+    std::string get_source() const override {
+        return std::to_string(this->src_port);
+    }
+
+    std::string get_destination() const override {
+        return std::to_string(this->dest_port);
+    }
+
     // 从字节流中解析 TCP 头部
     static TCPHeader parse(const uint8_t* data) {
         TCPHeader header;

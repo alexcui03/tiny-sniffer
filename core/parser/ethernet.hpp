@@ -20,17 +20,27 @@ struct EthernetHeader: public PacketHeader {
 
     std::string to_string() const override {
         std::stringstream stream;
-        stream << "Dest MAC: " << std::hex << std::setfill('0') << std::uppercase;
-        stream << std::setw(2) << (int)dest_mac[0];
-        for (size_t i = 1; i < 6; ++i) {
-            stream << ":" << std::setw(2) << (int)dest_mac[i];
+        stream << "Dest MAC: " << mac_to_string(dest_mac);
+        stream << "\nSrc MAC: " << mac_to_string(src_mac);
+        stream << "\nEth Type: 0x" << std::hex << std::setfill('0') << std::setw(4) << ethertype;
+        return stream.str();
+    }
+
+    std::string get_source() const override {
+        return mac_to_string(this->src_mac);
+    }
+
+    std::string get_destination() const override {
+        return mac_to_string(this->dest_mac);
+    }
+
+    static std::string mac_to_string(const uint8_t mac[6]) {
+        std::stringstream stream;
+        stream << std::hex << std::setfill('0') << std::uppercase;
+         for (size_t i = 0; i < 6; ++i) {
+            if (i > 0) stream << ":";
+            stream << std::setw(2) << (int)mac[i];
         }
-        stream << "\nSrc MAC: ";
-        stream << std::setw(2) << (int)src_mac[0];
-        for (size_t i = 1; i < 6; ++i) {
-            stream << ":" << std::setw(2) << (int)src_mac[i];
-        }
-        stream << "\nEth Type: 0x" << std::setw(4) << ethertype;
         return stream.str();
     }
 

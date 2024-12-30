@@ -110,11 +110,11 @@ void MainWindow::stopRecord() {
 void MainWindow::packetHandler(const DatalinkPacket &packet) {
     int row = data.rowCount();
     data.insertRow(row);
-    data.setData(data.index(row, PacketModel::Time), "123123");
-    data.setData(data.index(row, PacketModel::Source), "123123");
-    data.setData(data.index(row, PacketModel::Destination), "123123");
-    data.setData(data.index(row, PacketModel::Protocol), "123123");
-    data.setData(data.index(row, PacketModel::Description), "123123");
+    data.setData(data.index(row, PacketModel::Time), QString::fromStdString(packet.get_time()));
+    data.setData(data.index(row, PacketModel::Source), QString::fromStdString(packet.get_source()));
+    data.setData(data.index(row, PacketModel::Destination), QString::fromStdString(packet.get_destination()));
+    data.setData(data.index(row, PacketModel::Protocol), QString::fromStdString(packet.get_protocol()));
+    data.setData(data.index(row, PacketModel::Description), "");
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {

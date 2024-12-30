@@ -16,6 +16,7 @@ const DatalinkPacket &Parser::next_packet(const pcap_pkthdr *header, const unsig
     // Parse datalink layer.
     DatalinkPacket &datalink = this->packets.emplace_back();
     NetworkProtocol network_type = NetworkProtocol::INVALID;
+    datalink.timestamp = header->ts;
     if (this->datalink_type == DLT_EN10MB) { // Ethernet
         auto header = new EthernetHeader(EthernetHeader::parse(payload));
         datalink.protocol = DatalinkProtocol::ETHERNET;
