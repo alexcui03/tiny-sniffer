@@ -4,6 +4,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), device_selector(this), record_btn(this), stop_btn(this),
+    filter(this), filter_btn(this), data(this), filter_data(this),
     vertical_splitter(Qt::Vertical, this), table_view(&vertical_splitter), label(&vertical_splitter)
 {
     this->setMinimumSize(800, 600);
@@ -16,6 +17,11 @@ MainWindow::MainWindow(QWidget *parent)
     stop_btn.setEnabled(false);
     connect(&stop_btn, &QPushButton::clicked, this, &MainWindow::stopRecord);
 
+    filter.setPlaceholderText("Filter Patterns");
+
+    filter_btn.setText("Search");
+    connect(&filter_btn, &QPushButton::clicked, this, &MainWindow::tableFilter);
+
     // Init data
     data.insertColumns(0, 5);
     data.setHeaderData(PacketModel::Time, Qt::Horizontal, "Time");
@@ -24,7 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
     data.setHeaderData(PacketModel::Protocol, Qt::Horizontal, "Protocol");
     data.setHeaderData(PacketModel::Description, Qt::Horizontal, "Description");
 
-    table_view.setModel(&data);
+    filter_data.setSourceModel(&data);
+
+    table_view.setModel(&filter_data);
     table_view.horizontalHeader()->setStretchLastSection(true);
     table_view.verticalHeader()->hide();
     table_view.setEditTriggers(QTableView::NoEditTriggers);
@@ -123,6 +131,20 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     device_selector.setGeometry(10, 10, 320, 30);
     record_btn.setGeometry(330, 10, 60, 30);
     stop_btn.setGeometry(390, 10, 60, 30);
+    filter.setGeometry(10, 42, new_size.width() - 80, 26);
+    filter_btn.setGeometry(new_size.width() - 70, 40, 60, 30);
 
-    vertical_splitter.setGeometry(10, 40, new_size.width() - 20, new_size.height() - 50);
+    vertical_splitter.setGeometry(10, 80, new_size.width() - 20, new_size.height() - 90);
+}
+
+void MainWindow::invalidFilter() {
+    // TODO
+}
+
+void MainWindow::tableFilter() {
+    QString pattern = filter.text().trimmed();
+    bool result = filter_data.setFilterPatten(pattern);
+    if (!result) {
+        this->invalidFilter();
+    }
 }

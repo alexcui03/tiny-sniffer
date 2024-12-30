@@ -9,6 +9,7 @@ find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Widgets)
 
 set(PROJECT_SOURCES
     ListenerWorker.cpp
+    MultipleFilterProxyModel.cpp
     MainWindow.cpp
     main.cpp
 )
