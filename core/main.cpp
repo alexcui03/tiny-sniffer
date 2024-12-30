@@ -1,13 +1,22 @@
 #include <iostream>
-#include <pcap.h>
+
+#include "tiny-sniffer.hpp"
 
 int main(int argc, char *argv[]) {
-    char errbuf[PCAP_ERRBUF_SIZE];
-	char *dev = pcap_lookupdev(errbuf);
-	if (dev == NULL) {
-		fprintf(stderr, "Couldn't find default device: %s\n", errbuf);
-		return -1;
+    auto devices = Device::get_device_list();
+	for (int i = 0; const auto &device : devices) {
+		std::cout << "[" << i++ << "]" << device.get_name() << ": " << device.get_description() << std::endl;
 	}
-	printf("Device: %s\n", dev);
+
+	int index;
+	std::cout << "The index of device to listen to: ";
+	std::cin >> index;
+
+	Parser parser;
+
+	devices[index].listen([&parser](const void *header, const unsigned char *bytes) {
+		parser.next_package(header, bytes);
+	});
+
     return 0;
 }

@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.5)
 find_package(Pcap REQUIRED)
 
 set(PROJECT_SOURCES
+    device.cpp
+    parser.cpp
     main.cpp
 )
 
