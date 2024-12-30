@@ -21,6 +21,13 @@ endif()
 
 target_link_libraries(tiny-sniffer-gui PRIVATE tiny-sniffer-core Qt${QT_VERSION_MAJOR}::Widgets)
 
+include(GNUInstallDirs)
+install(TARGETS tiny-sniffer-gui
+    BUNDLE DESTINATION .
+    LIBRARY DESTINATION lib
+    RUNTIME DESTINATION bin
+)
+
 if(${QT_VERSION_MAJOR} EQUAL 6)
     qt_finalize_executable(tiny-sniffer-gui)
 endif()
