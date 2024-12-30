@@ -14,7 +14,7 @@ int main(int argc, char *argv[]) {
 
 	Parser parser;
 
-	devices[index].listen([&parser](const void *header, const unsigned char *bytes) {
+	devices[index].listen([&parser](const pcap_pkthdr *header, const unsigned char *bytes) {
 		parser.next_package(header, bytes);
 	});
 
