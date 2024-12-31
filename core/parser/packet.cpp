@@ -159,20 +159,20 @@ std::vector<std::pair<std::string, std::string>> DatalinkPacket::get_contents() 
     if (transport.protocol == TransportProtocol::TCP) {
         auto &pair = result.emplace_back();
         pair.first = "TCP";
-        pair.second = network.header->to_string();
+        pair.second = transport.header->to_string();
     } else if (transport.protocol == TransportProtocol::UDP) {
         auto &pair = result.emplace_back();
         pair.first = "UDP";
-        pair.second = network.header->to_string();
+        pair.second = transport.header->to_string();
     } else if (transport.protocol == TransportProtocol::ICMP) {
         auto &pair = result.emplace_back();
         pair.first = "ICMP";
-        pair.second = network.header->to_string();
+        pair.second = transport.header->to_string();
         return result;
     } else if (transport.protocol == TransportProtocol::ICMPV6) {
         auto &pair = result.emplace_back();
         pair.first = "ICMPv6";
-        pair.second = network.header->to_string();
+        pair.second = transport.header->to_string();
         return result;
     } else {
         return result;
@@ -181,7 +181,7 @@ std::vector<std::pair<std::string, std::string>> DatalinkPacket::get_contents() 
     auto &application = transport.payload;
     auto &pair = result.emplace_back();
     pair.first = "Application";
-    pair.second = network.header->to_string();
+    pair.second = application.to_string();
 
     return result;
 }
