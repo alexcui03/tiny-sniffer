@@ -4,7 +4,7 @@
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), device_selector(this), record_btn(this), stop_btn(this),
-    filter(this), filter_btn(this), data(this), filter_data(this),
+    filter(this), filter_btn(this), data(this), filter_data(this), clear_btn(this),
     vertical_splitter(Qt::Vertical, this), table_view(&vertical_splitter), packet_detail(&vertical_splitter)
 {
     this->setMinimumSize(800, 600);
@@ -16,6 +16,9 @@ MainWindow::MainWindow(QWidget *parent)
     stop_btn.setText("Stop");
     stop_btn.setEnabled(false);
     connect(&stop_btn, &QPushButton::clicked, this, &MainWindow::stopRecord);
+
+    clear_btn.setText("Clear");
+    connect(&clear_btn, &QPushButton::clicked, this, &MainWindow::clearRecord);
 
     filter.setPlaceholderText("Filter Patterns");
 
@@ -122,6 +125,10 @@ void MainWindow::stopRecord() {
     device_selector.setEnabled(true);
 }
 
+void MainWindow::clearRecord() {
+    data.removeRows(0, data.rowCount());
+}
+
 void MainWindow::packetHandler(const DatalinkPacket &packet) {
     int row = data.rowCount();
     data.insertRow(row);
@@ -150,6 +157,7 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     device_selector.setGeometry(10, 10, 320, 30);
     record_btn.setGeometry(330, 10, 60, 30);
     stop_btn.setGeometry(390, 10, 60, 30);
+    clear_btn.setGeometry(new_size.width() - 70, 10, 60, 30);
     filter.setGeometry(10, 42, new_size.width() - 80, 26);
     filter_btn.setGeometry(new_size.width() - 70, 40, 60, 30);
 
