@@ -127,6 +127,8 @@ void MainWindow::packetHandler(const DatalinkPacket &packet) {
     data.setData(data.index(row, PacketModel::Destination), QString::fromStdString(packet.get_destination()));
     data.setData(data.index(row, PacketModel::Protocol), QString::fromStdString(packet.get_protocol()));
     data.setData(data.index(row, PacketModel::Description), "");
+
+    table_view.scrollToBottom();
 }
 
 void MainWindow::resizeEvent(QResizeEvent *event) {
