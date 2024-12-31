@@ -36,7 +36,9 @@ struct IPv4Header: public PacketHeader {
         // 标志和片偏移
         uint16_t flags = flags_frag_offset >> 13;
         uint16_t frag_offset = flags_frag_offset & 0x1FFF;
-        stream << "Flags: " << flags << ", Fragment Offset: " << frag_offset << std::endl;
+        stream << "Flags: " << flags << "(DF="
+            << (int)((flags >> 1) & 0x01) << ", MF=" <<  (int)(flags & 0x01)
+            << "), Fragment Offset: " << frag_offset << std::endl;
 
         stream << "TTL: " << (int)ttl << std::endl;
         stream << "Protocol: " << (int)protocol << std::endl;

@@ -15,8 +15,14 @@ int main(int argc, char *argv[]) {
 	Parser parser;
 
 	devices[index].listen([&parser](const pcap_pkthdr *header, const unsigned char *bytes) {
-		decltype(auto) packet = parser.next_packet(header, bytes);
+		int additional = -1;
+		decltype(auto) packet = parser.next_packet(header, bytes, additional);
         std::cout << "==========" << std::endl << packet.to_string() << std::endl;
+
+		if (additional != -1) {
+			decltype(auto) packet = parser.assembled_packet(additional);
+			std::cout << "==========" << std::endl << packet.to_string() << std::endl;
+		}
 	});
 
     return 0;

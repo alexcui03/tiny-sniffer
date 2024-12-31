@@ -23,7 +23,8 @@ struct ICMPPacket: public PacketHeader {
         std::stringstream stream;
         stream << "ICMP Type: " << (int)type << std::endl;
         stream << "ICMP Code: " << (int)code << std::endl;
-        stream << "Checksum: 0x" << std::hex << std::setfill('0') << std::setw(4) << checksum << std::endl;
+        stream << "Checksum: 0x" << std::uppercase << std::hex << std::setfill('0')
+            << std::setw(4) << checksum << std::endl;
 
         // 打印数据部分（以十六进制格式）
         stream << "Data:" << std::hex << std::setfill('0') << std::endl;

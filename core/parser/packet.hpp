@@ -13,6 +13,11 @@ struct PacketHeader {
     virtual std::string get_destination() const { return ""; }
 };
 
+enum DatalinkFlag {
+    IP_INCOMPLETE = 0x01,
+    IP_REASSEMBLED = 0x02
+};
+
 enum class DatalinkProtocol {
     INVALID, ETHERNET
 };
@@ -55,11 +60,13 @@ struct DatalinkPacket {
     PacketHeader *header = nullptr;
     NetworkPacket payload;
     timeval timestamp;
+    int flag = 0;
 
     std::string to_string() const;
     std::string get_time() const;
     std::string get_source() const;
     std::string get_destination() const;
     std::string get_protocol() const;
+    std::string get_description() const;
     std::vector<std::pair<std::string, std::string>> get_contents() const;
 };

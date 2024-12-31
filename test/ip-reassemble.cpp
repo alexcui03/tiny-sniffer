@@ -1,0 +1,53 @@
+#include "../core/tiny-sniffer.hpp"
+
+#include <iostream>
+
+int main() {
+    Parser parser;
+
+    pcap_pkthdr hdr;
+    hdr.caplen = hdr.len = 0;
+    hdr.ts.tv_sec = hdr.ts.tv_usec = 0;
+
+    uint8_t p1[] = {
+        0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x01,
+        0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0x02,
+        0x08, 0x00,
+        0x45, 0x00, 0x00, 0x1C, 0x1C, 0x46, 0x60, 0x00, 0x40, 0x01, 0xB1, 0xE6,
+        0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x01,
+        0x01, 0x02, 0xAA, 0xAA, 0x11, 0x22, 0x33, 0x44
+    };
+
+    uint8_t p2[] = {
+        0xAA, 0xAA, 0xAA, 0xAA, 0xAA, 0x01,
+        0xBB, 0xBB, 0xBB, 0xBB, 0xBB, 0x02,
+        0x08, 0x00,
+        0x45, 0x00, 0x00, 0x1C, 0x1C, 0x46, 0x40, 0x01, 0x40, 0x01, 0xB1, 0xE6,
+        0x01, 0x01, 0x01, 0x02, 0x02, 0x02, 0x02, 0x01,
+        0xC0, 0xA8, 0x00, 0x68, 0x33, 0x44, 0x55, 0x66
+    };
+
+    {
+        int additional = -1;
+        decltype(auto) packet = parser.next_packet(&hdr, p1, additional);
+        std::cout << "==========" << std::endl << packet.to_string() << std::endl;
+
+        if (additional != -1) {
+            decltype(auto) packet = parser.assembled_packet(additional);
+            std::cout << "==========" << std::endl << packet.to_string() << std::endl;
+        }
+    }
+
+    {
+        int additional = -1;
+        decltype(auto) packet = parser.next_packet(&hdr, p2, additional);
+        std::cout << "==========" << std::endl << packet.to_string() << std::endl;
+
+        if (additional != -1) {
+            decltype(auto) packet = parser.assembled_packet(additional);
+            std::cout << "==========" << std::endl << packet.to_string() << std::endl;
+        }
+    }
+
+    return 0;
+}
