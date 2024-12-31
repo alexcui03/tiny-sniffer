@@ -56,9 +56,10 @@ struct IPv6Header: public PacketHeader {
     static std::string ip_to_string(const uint8_t ip[16]) {
         std::stringstream stream;
         stream << std::hex << std::uppercase;
-        for (int i = 0; i < 16; ++i) {
-            if (i > 0 && i % 2 == 0) stream << ":";
-            if (ip[i] > 0) stream << (int)ip[i];
+        for (int i = 0; i < 8; ++i) {
+            if (i > 0) stream << ":";
+            uint16_t t = (ip[i * 2] << 8) | ip[i * 2 + 1];
+            if (t > 0) stream << (int)t;
         }
         return stream.str();
     }

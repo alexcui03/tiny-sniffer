@@ -20,12 +20,13 @@ bool MultipleFilterProxyModel::setFilterPatten(const QString &filter) {
     QStringList items = filter.split(',');
     QMap<QString, QString> patterns;
     for (const QString &pattern : items) {
-        QStringList kv = pattern.trimmed().split(':');
-        if (kv.length() != 2) {
+        if (!pattern.contains(':')) {
             return false;
         }
 
-        patterns[kv[0].trimmed()] = kv[1].trimmed();
+        QString k = pattern.section(':', 0, 0).trimmed();
+        QString v = pattern.section(':', 1, -1).trimmed();
+        patterns[k] = v;
     }
 
     // Build regex and match items.
@@ -67,7 +68,7 @@ bool MultipleFilterProxyModel::filterAcceptsRow(int source_row, const QModelInde
     if (src_ip_filter.length() > 0) {
         QRegularExpression re(src_ip_filter);
         if (src_port_filter.length() > 0) {
-            re = QRegularExpression(src_ip_filter + ":" + src_port_filter);
+            re = QRegularExpression("\\[?" + src_ip_filter + "\\]?:" + src_port_filter);
         }
         result = result && re.match(source).hasMatch();
         if (!result) return result;
@@ -77,7 +78,7 @@ bool MultipleFilterProxyModel::filterAcceptsRow(int source_row, const QModelInde
     if (dst_ip_filter.length() > 0) {
         QRegularExpression re(dst_ip_filter);
         if (dst_port_filter.length() > 0) {
-            re = QRegularExpression(dst_ip_filter + ":" + dst_port_filter);
+            re = QRegularExpression("\\[?" + dst_ip_filter + "\\]?:" + dst_port_filter);
         }
         result = result && re.match(destination).hasMatch();
         if (!result) return result;

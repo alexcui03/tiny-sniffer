@@ -40,7 +40,11 @@ MainWindow::MainWindow(QWidget *parent)
     this->updateDevicesList();
 }
 
-MainWindow::~MainWindow() {}
+MainWindow::~MainWindow() {
+    if (worker) {
+        this->stopRecord();
+    }
+}
 
 void MainWindow::updateDevicesList() {
     this->device_list = Device::get_device_list();
