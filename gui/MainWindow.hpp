@@ -33,6 +33,7 @@ public slots:
     void pauseRecord();
     void stopRecord();
     void clearRecord();
+    void exportRecord();
     void packetHandler(const DatalinkPacket &packet);
     void tableFilter();
     void onTableSelected();
@@ -44,6 +45,7 @@ protected:
     QPushButton record_btn;
     QPushButton stop_btn;
     QPushButton clear_btn;
+    QPushButton export_btn;
     QLineEdit filter;
     QPushButton filter_btn;
     QTableView table_view;

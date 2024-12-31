@@ -5,9 +5,12 @@
 #include <QRegularExpression>
 #include <QVector>
 #include <QPair>
+#include <QFileDialog>
+#include <QFile>
+#include <QMessageBox>
 
 PacketDetail::PacketDetail(QWidget *parent)
-    : QWidget(parent), splitter(this), right(this), show_text_hex(&right)
+    : QWidget(parent), splitter(this), right(this), show_text_hex(&right), export_btn(&right)
 {
     splitter.addWidget(&protocol_list);
     splitter.addWidget(&detail);
@@ -17,6 +20,8 @@ PacketDetail::PacketDetail(QWidget *parent)
     protocol_list.setMaximumWidth(100);
     show_text_hex.setGeometry(0, 0, 80, 30);
     show_text_hex.setText("Show Text");
+    export_btn.setGeometry(0, 30, 80, 30);
+    export_btn.setText("Export");
 
     // Use monospace font.
     QFont font("monospace", detail.fontPointSize());
@@ -25,6 +30,7 @@ PacketDetail::PacketDetail(QWidget *parent)
 
     connect(&protocol_list, &QListWidget::currentRowChanged, this, &PacketDetail::onItemSelected);
     connect(&show_text_hex, &QPushButton::clicked, this, &PacketDetail::changeShowHex);
+    connect(&export_btn, &QPushButton::clicked, this, &PacketDetail::exportData);
 }
 
 PacketDetail::~PacketDetail() {}
@@ -51,6 +57,20 @@ QString PacketDetail::hex_to_text(const QString &str) {
     auto bytes = QByteArray::fromHex(bytes_str.toUtf8());
     auto result = QString::fromUtf8(bytes);
     return result;
+}
+
+QString PacketDetail::hex_replacement(const QString &str) {
+    QRegularExpression re("[0-9A-Fa-f]{2}( [0-9A-Fa-f]{2})+");
+    QRegularExpressionMatchIterator iter = re.globalMatch(str);
+    if (iter.hasNext()) {
+        QRegularExpressionMatch match = iter.next();
+        QString hex = str.mid(match.capturedStart(0), match.capturedLength(0));
+        QString text = hex_to_text(hex);
+        QString result = str.mid(0, match.capturedStart(0)) + text +
+            str.mid(match.capturedStart(0) + match.capturedLength(0));
+        return result;
+    }
+    return str;
 }
 
 void PacketDetail::onItemSelected(int new_row) {
@@ -83,18 +103,28 @@ void PacketDetail::changeShowHex() {
         show_text_hex.setText("Show Hex");
 
         if (current_row >= 0) {
-            // Replace hex with text.
-            QRegularExpression re("[0-9A-Fa-f]{2}( [0-9A-Fa-f]{2})+");
-            QString str = data[current_row].second;
-            QRegularExpressionMatchIterator iter = re.globalMatch(str);
-            if (iter.hasNext()) {
-                QRegularExpressionMatch match = iter.next();
-                QString hex = str.mid(match.capturedStart(0), match.capturedLength(0));
-                QString text = hex_to_text(hex);
-                QString result = str.mid(0, match.capturedStart(0)) + text +
-                    str.mid(match.capturedStart(0) + match.capturedLength(0));
-                detail.setText(result);
-            }
+            detail.setText(hex_replacement(data[current_row].second));
         }
     }
+}
+
+void PacketDetail::exportData() {
+    auto file_name = QFileDialog::getSaveFileName(this, "Export Packet", "sniffer-packet.txt", "Text Files (*.txt);;All Files (*)");
+    if (file_name.isEmpty()) return;
+
+    QFile file(file_name);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, "Error", "Cannot open file for writing.");
+        return;
+    }
+
+    QTextStream out(&file);
+    for (const auto &item : data) {
+        out << "==========" << item.first << " (HEX)==========\n" << item.second << "\n";
+    }
+    for (const auto &item : data) {
+        out << "==========" << item.first << " (TXT)==========\n" << hex_replacement(item.second) << "\n";
+    }
+
+    file.close();
 }

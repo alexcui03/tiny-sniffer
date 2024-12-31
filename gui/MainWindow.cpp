@@ -1,9 +1,12 @@
 #include "MainWindow.hpp"
 
 #include <QHeaderView>
+#include <QFileDialog>
+#include <QFile>
+#include <QMessageBox>
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), device_selector(this), record_btn(this), stop_btn(this),
+    : QMainWindow(parent), device_selector(this), record_btn(this), stop_btn(this), export_btn(this),
     filter(this), filter_btn(this), data(this), filter_data(this), clear_btn(this),
     vertical_splitter(Qt::Vertical, this), table_view(&vertical_splitter), packet_detail(&vertical_splitter)
 {
@@ -19,6 +22,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     clear_btn.setText("Clear");
     connect(&clear_btn, &QPushButton::clicked, this, &MainWindow::clearRecord);
+
+    export_btn.setText("Export");
+    connect(&export_btn, &QPushButton::clicked, this, &MainWindow::exportRecord);
 
     filter.setPlaceholderText("Filter Patterns");
 
@@ -129,6 +135,38 @@ void MainWindow::clearRecord() {
     data.removeRows(0, data.rowCount());
 }
 
+void MainWindow::exportRecord() {
+    auto file_name = QFileDialog::getSaveFileName(this, "Export", "sniffer-export.csv", "CSV Files (*.csv);;All Files (*)");
+    if (file_name.isEmpty()) return;
+
+    QFile file(file_name);
+    if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QMessageBox::warning(this, "Error", "Cannot open file for writing.");
+        return;
+    }
+
+    QTextStream out(&file);
+
+    // Export header.
+    for (int column = 0; column < 5; ++column) { // Don't export content.
+        QStandardItem *headerItem = data.horizontalHeaderItem(column);
+        if (column > 0) out << ",";
+        if (headerItem) out << headerItem->text();
+    }
+    out << "\n";
+
+    for (int row = 0; row < filter_data.rowCount(); ++row) {
+        for (int column = 0; column < 5; ++column) {
+            QString val = filter_data.data(filter_data.index(row, column)).toString();
+            if (column > 0) out << ",";
+            out << val;
+        }
+        out << "\n";
+    }
+
+    file.close();
+}
+
 void MainWindow::packetHandler(const DatalinkPacket &packet) {
     int row = data.rowCount();
     data.insertRow(row);
@@ -136,7 +174,7 @@ void MainWindow::packetHandler(const DatalinkPacket &packet) {
     data.setData(data.index(row, PacketModel::Source), QString::fromStdString(packet.get_source()));
     data.setData(data.index(row, PacketModel::Destination), QString::fromStdString(packet.get_destination()));
     data.setData(data.index(row, PacketModel::Protocol), QString::fromStdString(packet.get_protocol()));
-    data.setData(data.index(row, PacketModel::Description), "");
+    data.setData(data.index(row, PacketModel::Description), QString::fromStdString(packet.get_description()));
 
     // Build contents.
     PacketContent contents;
@@ -158,6 +196,7 @@ void MainWindow::resizeEvent(QResizeEvent *event) {
     record_btn.setGeometry(330, 10, 60, 30);
     stop_btn.setGeometry(390, 10, 60, 30);
     clear_btn.setGeometry(new_size.width() - 70, 10, 60, 30);
+    export_btn.setGeometry(new_size.width() - 130, 10, 60, 30);
     filter.setGeometry(10, 42, new_size.width() - 80, 26);
     filter_btn.setGeometry(new_size.width() - 70, 40, 60, 30);
 

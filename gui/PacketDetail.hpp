@@ -17,10 +17,12 @@ public:
     ~PacketDetail();
     void setData(const PacketContent &data);
     static QString hex_to_text(const QString &str);
+    static QString hex_replacement(const QString &str);
     static int from_hex(QChar ch);
 public slots:
     void onItemSelected(int new_row);
     void changeShowHex();
+    void exportData();
 protected:
     void resizeEvent(QResizeEvent *event) override;
 protected:
@@ -28,6 +30,7 @@ protected:
     QWidget right;
     QListWidget protocol_list;
     QPushButton show_text_hex;
+    QPushButton export_btn;
     QTextEdit detail;
 
     bool show_hex = true;
