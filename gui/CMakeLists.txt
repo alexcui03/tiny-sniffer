@@ -11,6 +11,7 @@ set(PROJECT_SOURCES
     ListenerWorker.cpp
     MultipleFilterProxyModel.cpp
     MainWindow.cpp
+    PacketDetail.cpp
     main.cpp
 )
 

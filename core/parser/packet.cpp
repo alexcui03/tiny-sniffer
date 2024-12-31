@@ -5,15 +5,7 @@
 #include <sstream>
 #include <string>
 
-std::string binary_to_string(uint8_t *bytes, size_t length) {
-    std::stringstream stream;
-    stream << std::hex << std::uppercase << std::setfill('0');
-    for (size_t i = 0; i < length; ++i) {
-        if (i > 0) stream << ' ';
-        stream << std::setw(2) << static_cast<int>(bytes[i]);
-    }
-    return stream.str();
-}
+#include "ethernet.hpp"
 
 std::string DatalinkPacket::to_string() const {
     std::string result = this->payload.to_string();
@@ -118,10 +110,78 @@ std::string NetworkPacket::get_destination() const {
 }
 
 std::string TransportPacket::to_string() const {
-    std::string result = binary_to_string(this->payload.payload, this->payload.length);
-    result = std::to_string(this->payload.length) + "\n" + result;
     if (this->header) {
-        result = this->header->to_string() +  + "\n----------\n" + result;
+        return this->header->to_string() +  + "\n----------\n" + this->payload.to_string();
     }
+    return "";
+}
+
+std::string ApplicationPacket::to_string() const {
+    std::stringstream stream;
+    stream << std::hex << std::uppercase << std::setfill('0');
+    for (size_t i = 0; i < payload.size(); ++i) {
+        if (i > 0) stream << ' ';
+        stream << std::setw(2) << static_cast<int>(payload[i]);
+    }
+    return stream.str();
+}
+
+std::vector<std::pair<std::string, std::string>> DatalinkPacket::get_contents() const {
+    std::vector<std::pair<std::string, std::string>> result;
+
+    if (this->protocol == DatalinkProtocol::ETHERNET) {
+        auto &pair = result.emplace_back();
+        pair.first = "ETHERNET";
+        pair.second = this->header->to_string();
+    } else {
+        return result;
+    }
+
+    auto &network = this->payload;
+    if (network.protocol == NetworkProtocol::IPV4) {
+        auto &pair = result.emplace_back();
+        pair.first = "IP";
+        pair.second = network.header->to_string();
+    } else if (network.protocol == NetworkProtocol::IPV6) {
+        auto &pair = result.emplace_back();
+        pair.first = "IPv6";
+        pair.second = network.header->to_string();
+    } else if (network.protocol == NetworkProtocol::ARP) {
+        auto &pair = result.emplace_back();
+        pair.first = "ARP";
+        pair.second = network.header->to_string();
+        return result;
+    } else {
+        return result;
+    }
+
+    auto &transport = network.payload;
+    if (transport.protocol == TransportProtocol::TCP) {
+        auto &pair = result.emplace_back();
+        pair.first = "TCP";
+        pair.second = network.header->to_string();
+    } else if (transport.protocol == TransportProtocol::UDP) {
+        auto &pair = result.emplace_back();
+        pair.first = "UDP";
+        pair.second = network.header->to_string();
+    } else if (transport.protocol == TransportProtocol::ICMP) {
+        auto &pair = result.emplace_back();
+        pair.first = "ICMP";
+        pair.second = network.header->to_string();
+        return result;
+    } else if (transport.protocol == TransportProtocol::ICMPV6) {
+        auto &pair = result.emplace_back();
+        pair.first = "ICMPv6";
+        pair.second = network.header->to_string();
+        return result;
+    } else {
+        return result;
+    }
+
+    auto &application = transport.payload;
+    auto &pair = result.emplace_back();
+    pair.first = "Application";
+    pair.second = network.header->to_string();
+
     return result;
 }

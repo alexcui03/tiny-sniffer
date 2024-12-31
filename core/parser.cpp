@@ -115,9 +115,8 @@ const DatalinkPacket &Parser::next_packet(const pcap_pkthdr *header, const unsig
     payload += transport.header->header_length();
     data_length -= transport.header->header_length();
     if (data_length < 0) return datalink;
-    transport.payload.payload = new uint8_t[data_length];
-    transport.payload.length = data_length;
-    std::memcpy(transport.payload.payload, payload, data_length);
+    transport.payload.payload.resize(data_length);
+    std::memcpy(transport.payload.payload.data(), payload, data_length);
 
     return datalink;
 }

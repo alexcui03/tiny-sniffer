@@ -5,7 +5,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), device_selector(this), record_btn(this), stop_btn(this),
     filter(this), filter_btn(this), data(this), filter_data(this),
-    vertical_splitter(Qt::Vertical, this), table_view(&vertical_splitter), label(&vertical_splitter)
+    vertical_splitter(Qt::Vertical, this), table_view(&vertical_splitter), packet_detail(&vertical_splitter)
 {
     this->setMinimumSize(800, 600);
 
@@ -23,12 +23,13 @@ MainWindow::MainWindow(QWidget *parent)
     connect(&filter_btn, &QPushButton::clicked, this, &MainWindow::tableFilter);
 
     // Init data
-    data.insertColumns(0, 5);
+    data.insertColumns(0, 6);
     data.setHeaderData(PacketModel::Time, Qt::Horizontal, "Time");
     data.setHeaderData(PacketModel::Source, Qt::Horizontal, "Source");
     data.setHeaderData(PacketModel::Destination, Qt::Horizontal, "Destination");
     data.setHeaderData(PacketModel::Protocol, Qt::Horizontal, "Protocol");
     data.setHeaderData(PacketModel::Description, Qt::Horizontal, "Description");
+    data.setHeaderData(PacketModel::Content, Qt::Horizontal, "Content");
 
     filter_data.setSourceModel(&data);
 
@@ -36,6 +37,8 @@ MainWindow::MainWindow(QWidget *parent)
     table_view.horizontalHeader()->setStretchLastSection(true);
     table_view.verticalHeader()->hide();
     table_view.setEditTriggers(QTableView::NoEditTriggers);
+    table_view.setColumnHidden(PacketModel::Content, true);
+    connect(table_view.selectionModel(), &QItemSelectionModel::selectionChanged, this, &MainWindow::onTableSelected);
 
     this->updateDevicesList();
 }
@@ -128,6 +131,16 @@ void MainWindow::packetHandler(const DatalinkPacket &packet) {
     data.setData(data.index(row, PacketModel::Protocol), QString::fromStdString(packet.get_protocol()));
     data.setData(data.index(row, PacketModel::Description), "");
 
+    // Build contents.
+    PacketContent contents;
+    const auto &std_contents = packet.get_contents();
+    for (const auto &std_pair : std_contents) {
+        auto &pair = contents.emplace_back();
+        pair.first = QString::fromStdString(std_pair.first);
+        pair.second = QString::fromStdString(std_pair.second);
+    }
+    data.setData(data.index(row, PacketModel::Content), QVariant::fromValue(contents));
+
     table_view.scrollToBottom();
 }
 
@@ -152,5 +165,15 @@ void MainWindow::tableFilter() {
     bool result = filter_data.setFilterPatten(pattern);
     if (!result) {
         this->invalidFilter();
+    }
+}
+
+void MainWindow::onTableSelected() {
+    QModelIndexList selected_indexes = table_view.selectionModel()->selectedIndexes();
+
+    if (!selected_indexes.isEmpty()) {
+        int row = selected_indexes.first().row();
+        auto data = filter_data.data(filter_data.index(row, PacketModel::Content)).value<PacketContent>();
+        packet_detail.setData(data);
     }
 }

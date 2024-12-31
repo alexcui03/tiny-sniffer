@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include <vector>
+#include <utility>
 
 #include <pcap.h>
 
@@ -25,8 +27,9 @@ enum class TransportProtocol {
 };
 
 struct ApplicationPacket {
-    uint8_t *payload = nullptr;
-    size_t length;
+    std::vector<uint8_t> payload;
+
+    std::string to_string() const;
 };
 
 struct TransportPacket {
@@ -58,4 +61,5 @@ struct DatalinkPacket {
     std::string get_source() const;
     std::string get_destination() const;
     std::string get_protocol() const;
+    std::vector<std::pair<std::string, std::string>> get_contents() const;
 };

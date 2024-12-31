@@ -20,6 +20,8 @@ set(PROJECT_HEADERS_PARSER
     parser/ipv4.hpp
     parser/ipv6.hpp
     parser/arp.hpp
+    parser/icmp.hpp
+    parser/icmpv6.hpp
     parser/tcp.hpp
     parser/udp.hpp
 )
