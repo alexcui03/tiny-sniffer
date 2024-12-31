@@ -63,6 +63,8 @@ std::string DatalinkPacket::get_protocol() const {
             switch (payload.payload.protocol) {
                 case TransportProtocol::TCP: return "TCP";
                 case TransportProtocol::UDP: return "UDP";
+                case TransportProtocol::ICMP: return "ICMP";
+                case TransportProtocol::ICMPV6: return "ICMP";
             }
             return "IP";
         }
@@ -81,12 +83,16 @@ std::string NetworkPacket::to_string() const {
 
 std::string NetworkPacket::get_source() const {
     if (protocol == NetworkProtocol::IPV4) {
-        if (payload.protocol == TransportProtocol::TCP) {
+        if (payload.protocol == TransportProtocol::TCP ||
+            payload.protocol == TransportProtocol::UDP
+        ) {
             return header->get_source() + ":" + payload.header->get_source();
         }
     }
     if (protocol == NetworkProtocol::IPV6) {
-        if (payload.protocol == TransportProtocol::TCP) {
+        if (payload.protocol == TransportProtocol::TCP ||
+            payload.protocol == TransportProtocol::UDP
+        ) {
             return "[" + header->get_source() + "]:" + payload.header->get_source();
         }
     }
@@ -95,12 +101,16 @@ std::string NetworkPacket::get_source() const {
 
 std::string NetworkPacket::get_destination() const {
     if (protocol == NetworkProtocol::IPV4) {
-        if (payload.protocol == TransportProtocol::TCP) {
+        if (payload.protocol == TransportProtocol::TCP ||
+            payload.protocol == TransportProtocol::UDP
+        ) {
             return header->get_destination() + ":" + payload.header->get_destination();
         }
     }
     if (protocol == NetworkProtocol::IPV6) {
-        if (payload.protocol == TransportProtocol::TCP) {
+        if (payload.protocol == TransportProtocol::TCP ||
+            payload.protocol == TransportProtocol::UDP
+        ) {
             return "[" + header->get_destination() + "]:" + payload.header->get_destination();
         }
     }

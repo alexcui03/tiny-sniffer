@@ -21,7 +21,7 @@ enum class NetworkProtocol {
 
 enum class TransportProtocol {
     INVALID, TCP, UDP,
-    ICMP /* ICMP Works in Network Layer, but it is above IP protocol. */
+    ICMP, ICMPV6 /* ICMP Works in Network Layer, but it is packed by IP protocol. */
 };
 
 struct ApplicationPacket {

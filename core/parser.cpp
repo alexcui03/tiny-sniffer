@@ -4,6 +4,8 @@
 #include "parser/ipv4.hpp"
 #include "parser/ipv6.hpp"
 #include "parser/arp.hpp"
+#include "parser/icmp.hpp"
+#include "parser/icmpv6.hpp"
 #include "parser/tcp.hpp"
 #include "parser/udp.hpp"
 #include "error.hpp"
@@ -45,12 +47,14 @@ const DatalinkPacket &Parser::next_packet(const pcap_pkthdr *header, const unsig
     payload += datalink.header->header_length();
     NetworkPacket &network = datalink.payload;
     TransportProtocol transport_type = TransportProtocol::INVALID;
+    int data_length = 0;
     switch (network_type) {
         case NetworkProtocol::IPV4: {
             auto header = new IPv4Header(IPv4Header::parse(payload));
             network.protocol = NetworkProtocol::IPV4;
             network.header = header;
             transport_type = Parser::ip_protocol(header->protocol);
+            data_length = header->total_length - header->header_length();
             break;
         }
         case NetworkProtocol::IPV6: {
@@ -58,13 +62,14 @@ const DatalinkPacket &Parser::next_packet(const pcap_pkthdr *header, const unsig
             network.protocol = NetworkProtocol::IPV6;
             network.header = header;
             transport_type = Parser::ipv6_protocol(header->next_header);
+            data_length = header->payload_length;
             break;
         }
         case NetworkProtocol::ARP: {
-            auto header = new ARPPacket(ARPPacket::parse(payload));
+            auto packet = new ARPPacket(ARPPacket::parse(payload));
             network.protocol = NetworkProtocol::ARP;
-            network.header = header;
-            break;
+            network.header = packet;
+            return datalink;
         }
         default: {
             return datalink;
@@ -82,7 +87,24 @@ const DatalinkPacket &Parser::next_packet(const pcap_pkthdr *header, const unsig
             break;
         }
         case TransportProtocol::UDP: {
-
+            auto header = new UDPHeader(UDPHeader::parse(payload));
+            transport.protocol = TransportProtocol::UDP;
+            transport.header = header;
+            break;
+        }
+        case TransportProtocol::ICMP: {
+            /* ICMP Works in Network Layer, but it is packed by IP protocol. */
+            auto packet = new ICMPPacket(ICMPPacket::parse(payload, data_length));
+            transport.protocol = TransportProtocol::ICMP;
+            transport.header = packet;
+            return datalink;
+        }
+        case TransportProtocol::ICMPV6: {
+            /* ICMP Works in Network Layer, but it is packed by IP protocol. */
+            auto packet = new ICMPv6Packet(ICMPv6Packet::parse(payload, data_length));
+            transport.protocol = TransportProtocol::ICMPV6;
+            transport.header = packet;
+            return datalink;
         }
         default: {
             return datalink;
@@ -91,11 +113,11 @@ const DatalinkPacket &Parser::next_packet(const pcap_pkthdr *header, const unsig
 
     // Parse application layer.
     payload += transport.header->header_length();
-    const int length = packet_length - (payload - bytes);
-    if (length < 0) return datalink;
-    transport.payload.payload = new uint8_t[length];
-    transport.payload.length = length;
-    std::memcpy(transport.payload.payload, payload, length);
+    data_length -= transport.header->header_length();
+    if (data_length < 0) return datalink;
+    transport.payload.payload = new uint8_t[data_length];
+    transport.payload.length = data_length;
+    std::memcpy(transport.payload.payload, payload, data_length);
 
     return datalink;
 }
@@ -110,16 +132,18 @@ DatalinkProtocol Parser::dlt_protocol(int datalink_type) {
 TransportProtocol Parser::ip_protocol(int ip_protocol) {
     switch (ip_protocol) {
         case IPPROTO_TCP: return TransportProtocol::TCP;
-        case IPPROTO_UDP: return TransportProtocol::TCP;
-        // case IPPROTO_ICMP: return TransportProtocol::ICMP;
+        case IPPROTO_UDP: return TransportProtocol::UDP;
+        case IPPROTO_ICMP: return TransportProtocol::ICMP;
         default: return TransportProtocol::INVALID;
     }
 }
 
 TransportProtocol Parser::ipv6_protocol(int next_header) {
     switch (next_header) {
+        case 0x01: return TransportProtocol::ICMP;
         case 0x06: return TransportProtocol::TCP;
         case 0x11: return TransportProtocol::UDP;
+        case 0x3a: return TransportProtocol::ICMPV6;
         default: return TransportProtocol::INVALID;
     }
 }
