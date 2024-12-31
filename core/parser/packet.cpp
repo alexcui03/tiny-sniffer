@@ -35,6 +35,16 @@ std::string DatalinkPacket::get_source() const {
     return header->get_source();
 }
 
+std::string DatalinkPacket::get_description() const {
+    if (flag & DatalinkFlag::IP_INCOMPLETE) {
+        return "Incomplete IP Packet";
+    }
+    if (flag & DatalinkFlag::IP_REASSEMBLED) {
+        return "Dummy reassembled IP Packet";
+    }
+    return "";
+}
+
 std::string DatalinkPacket::get_destination() const {
     if (protocol == DatalinkProtocol::ETHERNET) {
         if (payload.protocol == NetworkProtocol::IPV4 ||
@@ -59,6 +69,8 @@ std::string DatalinkPacket::get_protocol() const {
                 case TransportProtocol::ICMPV6: return "ICMP";
             }
             return "IP";
+        } else if (payload.protocol == NetworkProtocol::ARP) {
+            return "ARP";
         }
         return "ETHERNET";
     }

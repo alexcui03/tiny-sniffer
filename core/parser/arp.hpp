@@ -75,9 +75,9 @@ struct ARPPacket: public PacketHeader {
 
     static std::string ip_to_string(const uint8_t ip[4]) {
         std::stringstream stream;
-        stream << std::hex << std::uppercase;
+        stream << std::dec;
         for (int i = 0; i < 4; ++i) {
-            if (ip[i] > 0) stream << ip[i];
+            stream << (int)ip[i];
             if (i < 3) stream << ".";
         }
         return stream.str();
@@ -85,7 +85,16 @@ struct ARPPacket: public PacketHeader {
 
     static ARPPacket parse(const uint8_t *bytes) {
         ARPPacket arp;
-        std::memcpy(&arp, bytes, sizeof(ARPPacket));  // 将字节数据复制到结构体
+        std::memcpy(&arp.hw_type, bytes, sizeof(arp.hw_type));
+        std::memcpy(&arp.proto_type, bytes + 2, sizeof(arp.proto_type));
+        std::memcpy(&arp.hw_len, bytes + 4, sizeof(arp.hw_len));
+        std::memcpy(&arp.proto_len, bytes + 5, sizeof(arp.proto_len));
+        std::memcpy(&arp.operation, bytes + 6, sizeof(arp.operation));
+        std::memcpy(&arp.sender_hw_addr, bytes + 8, sizeof(arp.sender_hw_addr));
+        std::memcpy(&arp.sender_ip_addr, bytes + 14, sizeof(arp.sender_ip_addr));
+        std::memcpy(&arp.target_hw_addr, bytes + 18, sizeof(arp.target_hw_addr));
+        std::memcpy(&arp.target_ip_addr, bytes + 24, sizeof(arp.target_ip_addr));
+
         arp.hw_type = ntohs(arp.hw_type);
         arp.proto_type = ntohs(arp.proto_type);
         arp.operation = ntohs(arp.operation);
